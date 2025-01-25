@@ -22,15 +22,15 @@ func ShowMenu() {
 
 	menu := `
 Select an option:
-1. Setup Password
+1. Reset Password
 2. List Account
 3. List Wallet (Seed)
 4. List Wallet (Private Key)
-5. List Wallet (Other)
+5. List Other Data
 6. Add
 7. Delete
-8. Setup Google Credentials
-9. Sync Google Drive
+8. Google Drive Setup (Not Implemented)
+9. Sync Accounts (Not Implemented)
 ------------------------------
 `
 	fmt.Println(menu)
