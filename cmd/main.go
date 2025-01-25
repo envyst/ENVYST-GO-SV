@@ -85,17 +85,10 @@ func main() {
 
 // setupPassword initializes or updates the password.
 func setupPassword() string {
-	fmt.Print("Enter a password to continue: ")
+	fmt.Print("Enter your password: ")
 	var pass string
-	fmt.Scanln(&pass)
-	pass = strings.TrimSpace(pass)
-
-	if len(pass) < 8 {
-		fmt.Println("Password must be at least 8 characters long.")
-		return setupPassword()
-	}
-
-	fmt.Println("Password set successfully!")
+	fmt.Fscanln(os.Stdin, &password)
+	fmt.Println("Password set successfully.")
 	return pass
 }
 
