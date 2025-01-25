@@ -3,18 +3,19 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"ENVYST-GO-SV/internal/cryptography"
+	"ENVYST-GO-SV/internal/file"
 	"ENVYST-GO-SV/internal/logo"
-//	"ENVYST-GO-SV/internal/cryptography"
-//	"ENVYST-GO-SV/internal/file"
 	"ENVYST-GO-SV/internal/utilities"
-//	"ENVYST-GO-SV/internal/gdrive"
 )
+
+var password string
 
 func main() {
 	utilities.ClearScreen()
-	setupPassword()
-
+	password = setupPassword()
 	for {
 		logo.ShowMenu()
 		fmt.Print("Enter your choice: ")
@@ -24,73 +25,106 @@ func main() {
 
 		switch choice {
 		case "1":
+			// Reset password
 			utilities.ClearScreen()
-			setupPassword()
-                        utilities.ReturnPrompt()
+			password = setupPassword()
+			utilities.ReturnPrompt()
 		case "2":
+			// List and choose account
 			utilities.ClearScreen()
-			listAndChoose("accounts")
-                        utilities.ReturnPrompt()
+			handleListAndChoose("accounts")
+			utilities.ReturnPrompt()
 		case "3":
+			// List and choose wallet seed
 			utilities.ClearScreen()
-			listAndChoose("seeds")
-                        utilities.ReturnPrompt()
+			handleListAndChoose("seeds")
+			utilities.ReturnPrompt()
 		case "4":
+			// List and choose wallet private key
 			utilities.ClearScreen()
-			listAndChoose("private_keys")
-                        utilities.ReturnPrompt()
+			handleListAndChoose("private_keys")
+			utilities.ReturnPrompt()
 		case "5":
+			// List and choose other data
 			utilities.ClearScreen()
-			listAndChoose("others")
-                        utilities.ReturnPrompt()
+			handleListAndChoose("others")
+			utilities.ReturnPrompt()
 		case "6":
+			// Add data
 			utilities.ClearScreen()
-			addData()
-                        utilities.ReturnPrompt()
+			handleAddData()
+			utilities.ReturnPrompt()
 		case "7":
+			// Delete data
 			utilities.ClearScreen()
-			deleteData()
-                        utilities.ReturnPrompt()
+			handleDeleteData()
+			utilities.ReturnPrompt()
 		case "8":
+			// Example function for menu 8 (skipped functionality)
 			utilities.ClearScreen()
-			setupGoogleCredentials()
-                        utilities.ReturnPrompt()
+			fmt.Println("Feature not implemented yet.")
+			utilities.ReturnPrompt()
 		case "9":
+			// Example function for menu 9 (skipped functionality)
 			utilities.ClearScreen()
-			syncAccount()
-                        utilities.ReturnPrompt()
+			fmt.Println("Feature not implemented yet.")
+			utilities.ReturnPrompt()
 		case "exit", "q", "Q", "Exit":
-			fmt.Println("Exiting... Goodbye!")
+			// Exit the application with 3-second delay
 			utilities.ClearScreen()
+			fmt.Println("Exiting... Goodbye!")
+			time.Sleep(3 * time.Second) // Delay for 3 seconds
 			return
 		default:
+			// Invalid option
 			fmt.Println("Invalid option. Try again.")
-                        utilities.ReturnPrompt()
+			utilities.ReturnPrompt()
 		}
 	}
 }
 
-// Example functions
-func setupPassword() {
-	fmt.Println("Setting up password...")
+// setupPassword initializes or updates the password.
+func setupPassword() string {
+	fmt.Print("Enter a password to continue: ")
+	var pass string
+	fmt.Scanln(&pass)
+	pass = strings.TrimSpace(pass)
+
+	if len(pass) < 8 {
+		fmt.Println("Password must be at least 8 characters long.")
+		return setupPassword()
+	}
+
+	fmt.Println("Password set successfully!")
+	return pass
 }
 
-func listAndChoose(category string) {
-	fmt.Printf("Listing and choosing from category: %s\n", category)
+// handleListAndChoose calls ListAndChoose from the file module.
+func handleListAndChoose(directory string) {
+	data, err := file.ListAndChoose(directory, password)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Selected data:", data)
 }
 
-func addData() {
-	fmt.Println("Adding data...")
+// handleAddData calls AddData from the file module.
+func handleAddData() {
+	err := file.AddData(password)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Data added successfully!")
 }
 
-func deleteData() {
-	fmt.Println("Deleting data...")
-}
-
-func setupGoogleCredentials() {
-	fmt.Println("Setting up Google credentials...")
-}
-
-func syncAccount() {
-	fmt.Println("Syncing account...")
+// handleDeleteData calls DeleteData from the file module.
+func handleDeleteData() {
+	err := file.DeleteData(password)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Data deleted successfully!")
 }
