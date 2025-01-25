@@ -117,7 +117,7 @@ func ListAndChoose(directory, password string) (string, error) {
 }
 
 // DeleteData prompts the user to choose a data type and deletes the selected item.
-func DeleteData() {
+func DeleteData(password string) error {
 	if password == "" {
 		return errors.New("password not set")
 	}
@@ -146,14 +146,10 @@ func DeleteData() {
 		directory = "others"
 	default:
 		fmt.Println("Invalid option.")
-		utilities.ReturnPrompt()
-		return
+		return nil // Return nil to avoid breaking the flow; option is invalid.
 	}
 
-	err := ListAndDelete(directory)
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
+	return ListAndDelete(directory, password)
 }
 
 // ListAndDelete lists entries and deletes the selected one.
