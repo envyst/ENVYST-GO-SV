@@ -93,12 +93,3 @@ func FileNameDecrypt(token, password string) (string, error) {
 
 	return decrypted, nil
 }
-
-// SetupPassword prompts the user to input a password.
-func SetupPassword() string {
-	fmt.Print("Enter your password: ")
-	var password string
-	fmt.Fscanln(os.Stdin, &password)
-	fmt.Println("Password set successfully.")
-	return password
-}
