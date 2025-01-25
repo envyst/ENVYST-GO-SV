@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
-	"ENVYST-GO-SV/cryptography"
-	"ENVYST-GO-SV/utilities"
+	"ENVYST-GO-SV/internal/cryptography"
 )
 
 // ValidateSeed checks if the seed has 12 or 24 words.
@@ -54,7 +54,7 @@ func AccountNameExists(directory, accountName, password string) (bool, error) {
 	}
 
 	for _, file := range files {
-		decryptedName, err := cryptography.FileNameDecrypt(file.Name(), password)
+		decryptedName, err := cryptography.DecryptData(file.Name(), password)
 		if err == nil && decryptedName == accountName {
 			return true, nil
 		}
@@ -81,7 +81,7 @@ func ListAndChoose(directory, password string) (string, error) {
 	fmt.Println("Available entries:")
 	decryptedFiles := []string{}
 	for i, file := range files {
-		decryptedName, err := cryptography.FileNameDecrypt(file.Name(), password)
+		decryptedName, err := cryptography.DecryptData(file.Name(), password)
 		if err == nil {
 			decryptedFiles = append(decryptedFiles, file.Name())
 			fmt.Printf("%d. %s\n", i+1, decryptedName)
@@ -166,7 +166,7 @@ func ListAndDelete(directory, password string) error {
 	fmt.Println("Available entries:")
 	decryptedFiles := []string{}
 	for i, file := range files {
-		decryptedName, err := cryptography.FileNameDecrypt(file.Name(), password)
+		decryptedName, err := cryptography.DecryptData(file.Name(), password)
 		if err == nil {
 			decryptedFiles = append(decryptedFiles, file.Name())
 			fmt.Printf("%d. %s\n", i+1, decryptedName)
@@ -236,7 +236,7 @@ func AddData(password string) error {
 		return err
 	}
 
-	fileName, err := cryptography.FileNameEncrypt(name, password)
+	fileName, err := cryptography.EncryptData(name, password)
 	if err != nil {
 		return err
 	}

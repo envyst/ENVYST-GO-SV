@@ -7,10 +7,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"fmt"
+
 	"golang.org/x/crypto/pbkdf2"
-	"os"
-	"strings"
 )
 
 // DeriveKey generates a 32-byte key from the password and salt.
@@ -69,27 +67,4 @@ func DecryptData(token, password string) (string, error) {
 	stream.XORKeyStream(plaintext, ciphertext)
 
 	return string(plaintext), nil
-}
-
-// FileNameEncrypt encrypts the given data for filenames and replaces unsafe characters.
-func FileNameEncrypt(data, password string) (string, error) {
-	encrypted, err := EncryptData(data, password)
-	if err != nil {
-		return "", err
-	}
-
-	// Replace characters to make it filename safe
-	return strings.ReplaceAll(strings.ReplaceAll(encrypted, "/", "_"), "+", "-"), nil
-}
-
-// FileNameDecrypt decrypts the given token for filenames and returns the original data.
-func FileNameDecrypt(token, password string) (string, error) {
-	// Replace characters back to their original form
-	token = strings.ReplaceAll(strings.ReplaceAll(token, "_", "/"), "-", "+")
-	decrypted, err := DecryptData(token, password)
-	if err != nil {
-		return "", err
-	}
-
-	return decrypted, nil
 }

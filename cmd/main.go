@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
-	"os"
 
-	"ENVYST-GO-SV/internal/cryptography"
 	"ENVYST-GO-SV/internal/file"
 	"ENVYST-GO-SV/internal/logo"
 	"ENVYST-GO-SV/internal/utilities"
@@ -70,11 +69,16 @@ func main() {
 			utilities.ClearScreen()
 			fmt.Println("Feature not implemented yet.")
 			utilities.ReturnPrompt()
+		case "p":
+			// Example function for menu 9 (skipped functionality)
+			utilities.ClearScreen()
+			fmt.Println("Password : ", password)
+			utilities.ReturnPrompt()
 		case "exit", "q", "Q", "Exit":
 			// Exit the application with 3-second delay
-			utilities.ClearScreen()
 			fmt.Println("Exiting... Goodbye!")
-			time.Sleep(3 * time.Second) // Delay for 3 seconds
+			time.Sleep(1 * time.Second) // Delay for 3 seconds
+			utilities.ClearScreen()
 			return
 		default:
 			// Invalid option
@@ -88,7 +92,7 @@ func main() {
 func setupPassword() string {
 	fmt.Print("Enter your password: ")
 	var pass string
-	fmt.Fscanln(os.Stdin, &password)
+	fmt.Fscanln(os.Stdin, &pass)
 	fmt.Println("Password set successfully.")
 	return pass
 }
