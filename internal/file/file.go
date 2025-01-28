@@ -198,40 +198,41 @@ func AddData(password string) error {
 		return errors.New("password not set")
 	}
 
-	fmt.Println("Choose data type to add:")
+	// Display options and get choice
 	fmt.Println("1. Account\n2. Seed\n3. Private Key\n4. Other")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	choice := scanner.Text()
+	fmt.Print("Choose data type to add: ")
+	choice, err := getUserInput()
+	if err != nil {
+		return err
+	}
 
-	var directory, namePrompt, dataPrompt string
-	switch choice {
-	case "1":
-		directory, namePrompt, dataPrompt = "accounts", "Enter Account Name", "Enter Username and Password"
-	case "2":
-		directory, namePrompt, dataPrompt = "seeds", "Enter Wallet Name", "Enter Seed"
-	case "3":
-		directory, namePrompt, dataPrompt = "private_keys", "Enter Wallet Name", "Enter Private Key"
-	case "4":
-		directory, namePrompt, dataPrompt = "others", "Enter Type Name", "Enter Data"
-	default:
+	// Prepare data based on choice
+	directory, namePrompt, dataPrompt, processData := getDataDetails(choice)
+	if directory == "" {
 		return errors.New("invalid choice")
 	}
 
-	fmt.Println(namePrompt + ":")
-	scanner.Scan()
-	name := scanner.Text()
+	// Get name input
+	fmt.Print(namePrompt + " : ")
+	name, err := getUserInput()
+	if err != nil {
+		return err
+	}
 
+	// Check if name exists
 	exists, err := AccountNameExists(directory, name, password)
 	if err != nil || exists {
 		return errors.New("name already exists")
 	}
 
-	fmt.Println(dataPrompt + ":")
-	scanner.Scan()
-	data := scanner.Text()
+	// Collect content based on choice
+	content, err := processData(choice, dataPrompt)
+	if err != nil {
+		return err
+	}
 
-	encryptedContent, err := cryptography.EncryptData(data, password)
+	// Encrypt the content and name, then save to file
+	encryptedContent, err := cryptography.EncryptData(content, password)
 	if err != nil {
 		return err
 	}
@@ -242,4 +243,112 @@ func AddData(password string) error {
 	}
 
 	return SaveToFile(directory, fileName, encryptedContent)
+}
+
+// getUserInput handles user input and trims extra spaces.
+func getUserInput() (string, error) {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		return strings.TrimSpace(scanner.Text()), nil
+	}
+	return "", errors.New("error reading input")
+}
+
+// getDataDetails returns details based on the user's choice.
+func getDataDetails(choice string) (directory, namePrompt, dataPrompt string, processData func(string, string) (string, error)) {
+	switch choice {
+	case "1":
+		return "accounts", "Enter Account Name", "Enter Data", processAccountData
+	case "2":
+		return "seeds", "Enter Wallet Name", "Enter Seed", processSimpleData
+	case "3":
+		return "private_keys", "Enter Wallet Name", "Enter Private Key", processSimpleData
+	case "4":
+		return "others", "Enter Type Name", "Enter Data", processOtherData
+	default:
+		return "", "", "", nil
+	}
+}
+
+// processAccountData handles the data collection for account type.
+func processAccountData(choice, dataPrompt string) (string, error) {
+	var content string
+	fmt.Println(dataPrompt)
+
+	// Collect Username
+	fmt.Print("Username : ")
+	username, err := getUserInput()
+	if err != nil {
+		return "", err
+	}
+	content += "Username: " + username + "\n"
+
+	// Collect Password
+	fmt.Print("Password : ")
+	password, err := getUserInput()
+	if err != nil {
+		return "", err
+	}
+	content += "Password: " + password + "\n"
+
+	// Collect other data
+	fmt.Print("Other Data? (y/n) : ")
+	other, err := getUserInput()
+	if err != nil {
+		return "", err
+	}
+
+	for other == "y" {
+		fmt.Print("Enter Data Key (Leave Blank to SKIP) : ")
+		key, err := getUserInput()
+		if err != nil {
+			return "", err
+		}
+		if key != "" {
+			content += key + ": "
+			fmt.Print(key + " : ")
+			value, err := getUserInput()
+			if err != nil {
+				return "", err
+			}
+			content += value + "\n"
+		} else {
+			other = "n"
+		}
+	}
+	return content, nil
+}
+
+// processSimpleData handles simple data collection (seed, private key).
+func processSimpleData(choice, dataPrompt string) (string, error) {
+	fmt.Print(dataPrompt + " : ")
+	data, err := getUserInput()
+	if err != nil {
+		return "", err
+	}
+	return data, nil
+}
+
+// processOtherData handles the data collection for "Other" type.
+func processOtherData(choice, dataPrompt string) (string, error) {
+	var content string
+	for {
+		fmt.Print("Enter Data Key (Leave Blank to SKIP) : ")
+		key, err := getUserInput()
+		if err != nil {
+			return "", err
+		}
+		if key != "" {
+			content += key + ": "
+			fmt.Print(key + " : ")
+			value, err := getUserInput()
+			if err != nil {
+				return "", err
+			}
+			content += value + "\n"
+		} else {
+			break
+		}
+	}
+	return content, nil
 }

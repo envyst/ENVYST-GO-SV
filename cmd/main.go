@@ -104,6 +104,7 @@ func handleListAndChoose(directory string) {
 		fmt.Println("Error:", err)
 		return
 	}
+	data = "Done."
 	fmt.Println("Selected data:", data)
 }
 
@@ -123,6 +124,7 @@ func handleDeleteData() {
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
+	} else {
+		fmt.Println("Data deleted successfully!")
 	}
-	fmt.Println("Data deleted successfully!")
 }
