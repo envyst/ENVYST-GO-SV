@@ -32,47 +32,27 @@ func main() {
 		case "2":
 			// List and choose account
 			utilities.ClearScreen()
-			handleListAndChoose("accounts")
+			handeListData()
 			utilities.ReturnPrompt()
 		case "3":
-			// List and choose wallet seed
-			utilities.ClearScreen()
-			handleListAndChoose("seeds")
-			utilities.ReturnPrompt()
-		case "4":
-			// List and choose wallet private key
-			utilities.ClearScreen()
-			handleListAndChoose("private_keys")
-			utilities.ReturnPrompt()
-		case "5":
-			// List and choose other data
-			utilities.ClearScreen()
-			handleListAndChoose("others")
-			utilities.ReturnPrompt()
-		case "6":
 			// Add data
 			utilities.ClearScreen()
 			handleAddData()
 			utilities.ReturnPrompt()
-		case "7":
+		case "4":
 			// Delete data
 			utilities.ClearScreen()
 			handleDeleteData()
 			utilities.ReturnPrompt()
-		case "8":
+		case "5":
 			// Example function for menu 8 (skipped functionality)
 			utilities.ClearScreen()
 			fmt.Println("Feature not implemented yet.")
 			utilities.ReturnPrompt()
-		case "9":
+		case "6":
 			// Example function for menu 9 (skipped functionality)
 			utilities.ClearScreen()
 			fmt.Println("Feature not implemented yet.")
-			utilities.ReturnPrompt()
-		case "p":
-			// Example function for menu 9 (skipped functionality)
-			utilities.ClearScreen()
-			fmt.Println("Password : ", password)
 			utilities.ReturnPrompt()
 		case "exit", "q", "Q", "Exit":
 			// Exit the application with 3-second delay
@@ -97,15 +77,13 @@ func setupPassword() string {
 	return pass
 }
 
-// handleListAndChoose calls ListAndChoose from the file module.
-func handleListAndChoose(directory string) {
-	data, err := file.ListAndChoose(directory, password)
+// handeListData calls ListAndChoose from the file module.
+func handeListData() {
+	err := file.ListData(password)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	data = "Done."
-	fmt.Println("Selected data:", data)
 }
 
 // handleAddData calls AddData from the file module.
