@@ -218,10 +218,7 @@ func processAccountData() (string, error) {
 	password := getInput()
 	content.WriteString("Password: " + password + "\n")
 
-	fmt.Print("Other Data? (y/n): ")
-	other := getInput()
-
-	for strings.ToLower(other) == "y" {
+	for {
 		fmt.Print("Enter Data Key (Leave Blank to Skip): ")
 		key := getInput()
 		if key == "" {
