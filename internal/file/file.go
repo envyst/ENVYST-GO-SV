@@ -53,13 +53,14 @@ func SaveToFile(directory, fileName, content string) error {
 // DeleteData allows deleting a specific type of data (Account, Seed, etc.) after listing it.
 func DeleteData(password string) error {
 	return PerformDataOperation(password, func(directory, password string) error {
-		return ListAndPerform(directory, password, func(filePath string) error {
+		return ListAndPerform(directory, password, func(filePath, fileName string) error {
 			fmt.Print("Are you sure? (y/n): ")
 			scanner := bufio.NewScanner(os.Stdin)
 			scanner.Scan()
 			if strings.ToLower(scanner.Text()) != "y" {
 				return nil
 			}
+			fmt.Print(fileName + " ")
 			return os.Remove(filePath)
 		})
 	})
@@ -68,7 +69,7 @@ func DeleteData(password string) error {
 // ListData allows listing data of a specific type (Account, Seed, etc.) without performing actions.
 func ListData(password string) error {
 	return PerformDataOperation(password, func(directory, password string) error {
-		return ListAndPerform(directory, password, func(filePath string) error {
+		return ListAndPerform(directory, password, func(filePath, fileName string) error {
 			fileContent, err := os.ReadFile(filePath)
 			if err != nil {
 				return err
@@ -81,6 +82,8 @@ func ListData(password string) error {
 
 			fmt.Println("Details:")
 			fmt.Println("------------------------------------")
+			fmt.Println(fileName)
+			fmt.Println("------------------------------------")
 			fmt.Println(decryptedContent)
 			fmt.Println("------------------------------------")
 
@@ -90,7 +93,7 @@ func ListData(password string) error {
 }
 
 // ListAndPerform lists entries in a directory and allows the user to perform an action on the selected entry.
-func ListAndPerform(directory, password string, action func(string) error) error {
+func ListAndPerform(directory, password string, action func(string, string) error) error {
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		return errors.New("no data available")
 	}
@@ -118,7 +121,11 @@ func ListAndPerform(directory, password string, action func(string) error) error
 	}
 
 	selectedFile := decryptedFiles[idx-1]
-	return action(filepath.Join(directory, selectedFile))
+	decryptedFileName, err := cryptography.DecryptData(selectedFile, password)
+	if err != nil {
+		return err
+	}
+	return action(filepath.Join(directory, selectedFile), decryptedFileName)
 }
 
 // PerformDataOperation performs an operation (e.g., list or delete) on a data type.
@@ -152,11 +159,11 @@ func PerformDataOperation(password string, operation func(string, string) error)
 
 // AddData handles adding various types of data (Account, Seed, Private Key, etc.).
 func AddData(password string) error {
-	dataTypes := map[string]struct {
-		Directory   string
+	dataOptions := map[string]struct {
+		Dir         string
 		NamePrompt  string
 		DataPrompt  string
-		ProcessData func() (string, error)
+		ProcessFunc func() (string, error)
 	}{
 		"1": {"accounts", "Enter Account Name", "Enter Data", processAccountData},
 		"2": {"seeds", "Enter Wallet Name", "Enter Seed", processSimpleData},
@@ -168,35 +175,42 @@ func AddData(password string) error {
 	fmt.Print("Choose data type to add: ")
 	choice := getInput()
 
-	dataType, ok := dataTypes[choice]
-	if !ok {
+	option, valid := dataOptions[choice]
+	if !valid {
 		return errors.New("invalid choice")
 	}
 
-	fmt.Print(dataType.NamePrompt + ": ")
-	name := getInput()
+	fmt.Print(option.NamePrompt + ": ")
+	accountName := getInput()
 
-	exists, err := AccountNameExists(filepath.Join(parentDir, dataType.Directory), name, password)
-	if err != nil || exists {
+	exists, err := AccountNameExists(filepath.Join(parentDir, option.Dir), accountName, password)
+	if err != nil {
+		return err
+	}
+	if exists {
 		return errors.New("name already exists")
 	}
 
-	content, err := dataType.ProcessData()
+	dataContent, err := option.ProcessFunc()
 	if err != nil {
 		return err
 	}
 
-	encryptedContent, err := cryptography.EncryptData(content, password)
-	if err != nil {
-		return err
+	if dataContent != "" {
+		encryptedContent, err := cryptography.EncryptData(dataContent, password)
+		if err != nil {
+			return err
+		}
+
+		encryptedFileName, err := cryptography.EncryptData(accountName, password)
+		if err != nil {
+			return err
+		}
+
+		return SaveToFile(filepath.Join(parentDir, option.Dir), encryptedFileName, encryptedContent)
 	}
 
-	fileName, err := cryptography.EncryptData(name, password)
-	if err != nil {
-		return err
-	}
-
-	return SaveToFile(filepath.Join(parentDir, dataType.Directory), fileName, encryptedContent)
+	return nil
 }
 
 // getInput handles user input
@@ -234,7 +248,14 @@ func processAccountData() (string, error) {
 
 // processSimpleData handles simple data collection (seed, private key).
 func processSimpleData() (string, error) {
-	return getInput(), nil
+	fmt.Print("Enter Data: ")
+	data := getInput()
+	if !ValidatePrivateKey(data) && !ValidateSeed(data) {
+		return "", errors.New("invalid data format")
+	}
+	var content strings.Builder
+	content.WriteString(data)
+	return content.String(), nil
 }
 
 // processOtherData handles the data collection for "Other" type.
